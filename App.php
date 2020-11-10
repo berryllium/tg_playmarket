@@ -5,6 +5,7 @@ class App {
     private $url;
     private $new_rating;
     private $new_reviews;
+    private $new_date;
 
     public function __construct($path) {
         $this->path = $path;
@@ -29,6 +30,10 @@ class App {
         if($diff > 0) {
             $this->item['rating'] = $this->new_rating;
             $message[] = $this->item['name'] . ': рейтинг приложения упал на ' . $diff;
+        }
+        if($this->item['date'] != $this->new_date){
+            $this->item['date'] = $this->new_date;
+            $message[] = $this->item['name'] . ': приложение обновлено ';
         }
         if($message) {
             foreach (USER_ID as $user) {
@@ -57,6 +62,10 @@ class App {
         $block = $dom->find(".LXrl4c")->html();
         $rev = preg_match_all('#aria-label="Rated (\S+) stars out of#', $block, $matches);
         $this->new_reviews = $matches[1];    
+        
+        $block = $dom->find(".hAyfc")->html();
+        $rev = preg_match('#<span class="htlgb">([^<]+)</span>#', $html, $matches);
+        $this->new_date = $matches[1];  
     }
 
     public function getPage() {
@@ -68,7 +77,7 @@ class App {
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36');
         $output = curl_exec($ch);
-        file_put_contents('test.html', $output);
+        // file_put_contents('test.html', $output);
         curl_close($ch);
         return $output;
     }
