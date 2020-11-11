@@ -1,4 +1,5 @@
 <?php
+error_reporting(E_ALL);
 class App {
     private $item;
     private $path;
@@ -17,8 +18,15 @@ class App {
 
     public function validate() {
         $message = [];
-        $this->parse();
-        if($this->item['reviews'] != $this->new_reviews) {
+        if(!$this->parse()) {
+            $message = $this->item['name'] . ': приложение не доступно';
+            foreach (USER_ID as $user) {
+                $this->sendMessage($message, $user);
+            }
+            $this->save();
+            return false;
+        };
+        if($this->item['reviews'] != $this->new_reviews && $this->new_reviews) {
             $this->item['reviews'] = $this->new_reviews;
             foreach($this->new_reviews as $rev) {
                 if((int)$rev == 1) {
@@ -26,12 +34,15 @@ class App {
                 }
             }
         }
-        $diff = $this->item['rating'] - $this->new_rating;
+        if($this->new_rating) {
+            $diff = $this->item['rating'] - $this->new_rating;
+        $this->item['rating'] = $this->new_rating;
         if($diff > 0) {
-            $this->item['rating'] = $this->new_rating;
             $message[] = $this->item['name'] . ': рейтинг приложения упал на ' . $diff;
+        } 
         }
-        if($this->item['date'] != $this->new_date){
+        
+        if($this->item['date'] != $this->new_date && $this->new_date){
             $this->item['date'] = $this->new_date;
             $message[] = $this->item['name'] . ': приложение обновлено ';
         }
@@ -47,25 +58,26 @@ class App {
         $html = $this->getPage();
         // $html = file_get_contents('test.html');
         $dom = phpQuery::newDocument($html);
+        $error = $dom->find('#error-section')->text();
+
+        if($error) {
+            $this->item['availability'] = false;
+            return false;
+        } else {
+            $this->item['availability'] = true;
+        }
+
         $rating = $dom->find('.BHMmbe')->text();
         if($rating) $this->new_rating = $rating;
-        else {
-            $message = $this->item['name'] . ': приложение не доступно';
-            foreach(USER_ID as $user) {
-                $this->sendMessage($message, $user);
-            }
-            $this->item['availability'] = false;
-            $this->save();
-            return false;
-        }
         
         $block = $dom->find(".LXrl4c")->html();
         $rev = preg_match_all('#aria-label="Rated (\S+) stars out of#', $block, $matches);
-        $this->new_reviews = $matches[1];    
+        if($matches[1]) $this->new_reviews = $matches[1];    
         
         $block = $dom->find(".hAyfc")->html();
         $rev = preg_match('#<span class="htlgb">([^<]+)</span>#', $html, $matches);
-        $this->new_date = $matches[1];  
+        if($matches[1]) $this->new_date = $matches[1];  
+        return true;
     }
 
     public function getPage() {
@@ -77,12 +89,13 @@ class App {
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36');
         $output = curl_exec($ch);
-        // file_put_contents('test.html', $output);
+        file_put_contents('test.html', $output);
         curl_close($ch);
         return $output;
     }
 
     function sendMessage($message, $chat_id) {
+        if(!$message) return false;
         $message = implode(', ', $message);
         // file_put_contents('mess/mess_'.rand(1,1000).'.txt', $message);
         $method = 'sendMessage';
@@ -110,7 +123,6 @@ class App {
       }
 
     public function save() {
-        var_dump($this->new_rating);
         $json = json_encode($this->item, JSON_UNESCAPED_UNICODE);
         file_put_contents($this->path, $json);
     }
