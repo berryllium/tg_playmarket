@@ -19,9 +19,12 @@ class App {
     public function validate() {
         $message = [];
         if(!$this->parse()) {
-            $message[] = $this->item['name'] . ': приложение не доступно';
-            foreach (USER_ID as $user) {
-                $this->sendMessage($message, $user);
+            if($this->item['availability'] != $this->new_availability) {
+                $this->item['availability'] = $this->new_availability;    
+                $message[] = $this->item['name'] . ': приложение не доступно';
+                foreach (USER_ID as $user) {
+                    $this->sendMessage($message, $user);
+                }
             }
             $this->save();
             return false;
@@ -61,10 +64,10 @@ class App {
         $error = $dom->find('#error-section')->text();
 
         if($error) {
-            $this->item['availability'] = false;
+            $this->new_availability = false;
             return false;
         } else {
-            $this->item['availability'] = true;
+            $this->new_availability = true;
         }
 
         $rating = $dom->find('.BHMmbe')->text();
