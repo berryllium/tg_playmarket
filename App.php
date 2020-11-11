@@ -19,7 +19,7 @@ class App {
     public function validate() {
         $message = [];
         if(!$this->parse()) {
-            $message = $this->item['name'] . ': приложение не доступно';
+            $message[] = $this->item['name'] . ': приложение не доступно';
             foreach (USER_ID as $user) {
                 $this->sendMessage($message, $user);
             }
@@ -85,6 +85,7 @@ class App {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $this->url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($ch, CURLOPT_HEADER, 0);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36');
