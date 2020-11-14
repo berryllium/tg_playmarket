@@ -36,7 +36,6 @@ class App {
 
         if($this->item['reviews'] != $this->new_reviews && $this->new_reviews) {
             $this->item['reviews'] = $this->new_reviews;
-            var_dump($this->new_reviews);
             foreach($this->new_reviews as $rev) {
                 if($rev == 1) {
                     $message[] = $this->item['name'] . ': появился отзыв с рейтингом 1';
