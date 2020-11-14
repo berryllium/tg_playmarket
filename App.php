@@ -93,7 +93,7 @@ class App {
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36');
         $output = curl_exec($ch);
-        file_put_contents('test.html', $output);
+        // file_put_contents('test.html', $output);
         curl_close($ch);
         return $output;
     }
