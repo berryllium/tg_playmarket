@@ -18,31 +18,38 @@ class App {
 
     public function validate() {
         $message = [];
-        if(!$this->parse()) {
-            if($this->item['availability'] != $this->new_availability) {
-                $this->item['availability'] = $this->new_availability;    
+        $this->parse();
+
+        if($this->item['availability'] != $this->new_availability) {
+            $this->item['availability'] = $this->new_availability;
+            if($this->new_availability == false) {
                 $message[] = $this->item['name'] . ': приложение не доступно';
                 foreach (USER_ID as $user) {
                     $this->sendMessage($message, $user);
                 }
-            }
-            $this->save();
-            return false;
-        };
+                $this->save();
+                return false;
+            } else {
+                $message[] = $this->item['name'] . ': приложение снова доступно';
+            }                
+        }
+
         if($this->item['reviews'] != $this->new_reviews && $this->new_reviews) {
             $this->item['reviews'] = $this->new_reviews;
+            var_dump($this->new_reviews);
             foreach($this->new_reviews as $rev) {
-                if((int)$rev == 1) {
+                if($rev == 1) {
                     $message[] = $this->item['name'] . ': появился отзыв с рейтингом 1';
+                    break;
                 }
             }
         }
         if($this->new_rating) {
             $diff = $this->item['rating'] - $this->new_rating;
-        $this->item['rating'] = $this->new_rating;
-        if($diff > 0) {
-            $message[] = $this->item['name'] . ': рейтинг приложения упал на ' . $diff;
-        } 
+            $this->item['rating'] = $this->new_rating;
+            if($diff > 0) {
+                $message[] = $this->item['name'] . ': рейтинг приложения упал на ' . $diff;
+            } 
         }
         
         if($this->item['date'] != $this->new_date && $this->new_date){
